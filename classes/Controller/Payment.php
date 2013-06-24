@@ -11,6 +11,9 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 		)
 	);
 
+	/**
+	 * List all packages
+	 */
 	public function action_index() {
 
 		$this->view = new View_Payment_Packages;
@@ -18,6 +21,11 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 
 	}
 
+	/**
+	 * Package details.
+	 *
+	 * @throws HTTP_Exception
+	 */
 	public function action_package() {
 
 		$id = $this->request->param('id');
@@ -31,6 +39,11 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 		$this->view->package = $package;
 	}
 
+	/**
+	 * Send the user to paypal.
+	 *
+	 * @throws HTTP_Exception
+	 */
 	public function action_paypal() {
 
 		require_once DOCROOT.'vendor/autoload.php';
@@ -49,24 +62,28 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 		$gateway->setPassword($config['password']);
 		$gateway->setSignature($config['signature']);
 
-		$response = $gateway->purchase(array(
-			'amount'      => $package['cost'],
-			'testMode'    => $config['testMode'],
-			'landingPage' => array('Login', 'Billing'),
-			'return_url'  => Route::url('payment.paypal_complete', array('id' => $id), TRUE),
-			'cancel_url'  => Route::url('payment.package', array('id' => $id), TRUE)
-		))->send();
+		$response = $gateway
+			->purchase($this->_format_payment_details($package, $config))
+			->send();
 
 		if ($response->isSuccessful()) {
+			// Can this even happen?
 			die('Huh, payment was successful?');
+			// TODO: We should have a proper error message.
 		} elseif ($response->isRedirect()) {
 			$response->redirect();
 		} else {
 			die('Something went wrong!');
+			// TODO: We should have a proper error message.
 		}
 
 	}
 
+	/**
+	 * Return the user from paypal, and process the payment.
+	 *
+	 * @throws HTTP_Exception
+	 */
 	public function action_paypal_complete() {
 
 		require_once DOCROOT.'vendor/autoload.php';
@@ -85,20 +102,39 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 		$gateway->setPassword($config['password']);
 		$gateway->setSignature($config['signature']);
 
-		$response = $gateway->completePurchase(array(
-			'amount'      => $package['cost'],
-			'testMode'    => $config['testMode'],
-			'landingPage' => array('Login', 'Billing'),
-			'return_url'  => Route::url('payment.paypal_complete', array('id' => $id), TRUE),
-			'cancel_url'  => Route::url('payment.package', array('id' => $id), TRUE)
-		))->send();
+		$response = $gateway
+			->completePurchase($this->_format_payment_details($package, $config))
+			->send();
 
 		if ($response->isSuccessful()) {
 			die('Congrats we got cash!');
+
+			// TODO: Set the user gold?
+
 		} else {
-			die('Something went wrong!');
+			die('Something went wrong, no cash should have been drawn, if the error proceeds contact support!');
+			// TODO: We should have a proper error message.
 		}
 
 	}
 
+	/**
+	 * Format the payment details for the package.
+	 *
+	 * @param  array $package
+	 * @param  array $config
+	 * @return array
+	 */
+	protected function _format_payment_details($package, array $config) {
+		$id = $package['id'];
+		return array(
+			'amount'      => $package['cost'],
+			'currency'    => $config['currency'],
+
+			'testMode'    => $config['testMode'],
+			'landingPage' => array('Login', 'Billing'),
+			'return_url'  => Route::url('payment.paypal_complete', array('id' => $id), TRUE),
+			'cancel_url'  => Route::url('payment.package', array('id' => $id), TRUE)
+		);
+	}
 }

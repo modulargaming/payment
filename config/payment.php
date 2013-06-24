@@ -7,7 +7,8 @@ return array(
 			'username'  => '',
 			'password'  => '',
 			'signature' => '',
-			'testMode'  => TRUE
+			'testMode'  => TRUE,
+			'currency'  => 'GBP'
 		)
 	)
 
