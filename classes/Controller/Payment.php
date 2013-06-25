@@ -2,6 +2,8 @@
 
 class Controller_Payment extends Abstract_Controller_Frontend {
 
+	protected $protected = TRUE;
+
 	// TODO: Change this to database driven?
 	private $packages = array(
 		array(
