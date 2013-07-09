@@ -110,7 +110,6 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 			->send();
 
 		if ($response->isSuccessful()) {
-			$package = Arr::get($this->packages, $id - 1);
 			$points = Kohana::$config->load('items.points');
 			$initial_points = $points['initial'];
 			$this->user->set_property('points', $this->user->get_property('points', $initial_points) + $package['reward']);
