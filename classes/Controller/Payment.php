@@ -71,7 +71,8 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 
 		if ($response->isSuccessful()) {
 			// Can this even happen?
-			die('Huh, payment was successful?');
+			Hint::success(Kohana::message('user', 'payment.success'));
+			$this->redirect(Route::get('user.dashboard')->uri());
 			// TODO: We should have a proper error message.
 		} elseif ($response->isRedirect()) {
 			$response->redirect();
@@ -113,6 +114,7 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 			$points = Kohana::$config->load('items.points');
 			$initial_points = $points['initial'];
 			$this->user->set_property('points', $this->user->get_property('points', $initial_points) + $package['reward']);
+			Hint::success(Kohana::message('user', 'payment.success'));
 			$this->redirect(Route::get('user.dashboard')->uri());
 
 		} else {
