@@ -9,7 +9,8 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 		array(
 			'name' => '100 coins',
 			'cost' => '1000', // Price including 2 decimals.
-			'id'   => 1
+			'id'   => 1,
+			'reward' => 100
 		)
 	);
 
@@ -33,7 +34,7 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 		$id = $this->request->param('id');
 		$package = Arr::get($this->packages, $id - 1);
 
-		if ($package == null) {
+		if ($package == NULL) {
 			throw HTTP_Exception::factory('404', 'file not found');
 		}
 
@@ -70,12 +71,13 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 
 		if ($response->isSuccessful()) {
 			// Can this even happen?
-			die('Huh, payment was successful?');
+			Hint::success(Kohana::message('payment', 'payment.success'));
+			$this->redirect(Route::get('user.dashboard')->uri());
 			// TODO: We should have a proper error message.
 		} elseif ($response->isRedirect()) {
 			$response->redirect();
 		} else {
-			die('Something went wrong!');
+			throw HTTP_Exception::factory('403', 'Payment was unsuccessful');
 			// TODO: We should have a proper error message.
 		}
 
@@ -109,13 +111,14 @@ class Controller_Payment extends Abstract_Controller_Frontend {
 			->send();
 
 		if ($response->isSuccessful()) {
-			die('Congrats we got cash!');
-
-			// TODO: Set the user gold?
+			$points = Kohana::$config->load('items.points');
+			$initial_points = $points['initial'];
+			$this->user->set_property('points', $this->user->get_property('points', $initial_points) + $package['reward']);
+			Hint::success(Kohana::message('payment', 'payment.success'));
+			$this->redirect(Route::get('user.dashboard')->uri());
 
 		} else {
-			die('Something went wrong, no cash should have been drawn, if the error proceeds contact support!');
-			// TODO: We should have a proper error message.
+			throw HTTP_Exception::factory('403', 'Something went wrong, no cash should have been drawn, if the error proceeds contact support!');
 		}
 
 	}
