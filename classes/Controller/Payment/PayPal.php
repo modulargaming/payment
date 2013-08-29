@@ -34,7 +34,8 @@ class Controller_Payment_PayPal extends Controller_Payment {
 
 		$this->_config = Kohana::$config->load('payment.gateways.paypal');
 
-		$this->_gateway = Omnipay\Common\GatewayFactory::create('PayPal_Express');
+		//$this->_gateway = Omnipay\Common\GatewayFactory::create('PayPal_Express');
+		$this->_gateway = Omnipay\Common\GatewayFactory::create('\TMPGateway');
 		$this->_gateway->setUsername($this->_config['username']);
 		$this->_gateway->setPassword($this->_config['password']);
 		$this->_gateway->setSignature($this->_config['signature']);
@@ -51,6 +52,16 @@ class Controller_Payment_PayPal extends Controller_Payment {
 		// Redirect the user to PayPal.
 		if ($response->isRedirect())
 		{
+			$data = $response->getData();
+
+			ORM::factory('Payment_Transaction')
+				->values(array(
+					'user_id'    => $this->user->id,
+					'package_id' => $this->_package->id,
+					'token'      => $data['TOKEN'],
+					'status'     => 'pending',
+				))->create();
+
 			$response->redirect();
 		}
 		else
@@ -74,6 +85,24 @@ class Controller_Payment_PayPal extends Controller_Payment {
 
 		if ($response->isSuccessful())
 		{
+			// Get the transaction details.
+			$fetch = $this->_gateway->fetchTransaction($this->_payment_vars())->send();
+			$data = $fetch->getData();
+
+			$transaction = ORM::factory('Payment_Transaction')
+				->where('TOKEN', '=', $data['TOKEN'])
+				->find();
+
+			// Update the transaction with the buyers information.
+			$transaction->values(array(
+				'status'     => 'completed',
+				'email'      => $data['EMAIL'],
+				'first_name' => $data['FIRSTNAME'],
+				'last_name'  => $data['LASTNAME'],
+				'country'    => $data['COUNTRYCODE'],
+			))->save();
+
+			// TODO: Code a proper reward system!
 			$points = Kohana::$config->load('items.points');
 			$initial_points = $points['initial'];
 
@@ -114,6 +143,28 @@ class Controller_Payment_PayPal extends Controller_Payment {
 				'id' => $this->_package->id
 			), TRUE)
 		);
+	}
+
+}
+
+// UGLY, There is a pull request for Omnipay to add this feature. We should be on the lookout for when it gets merged.
+// https://github.com/adrianmacneil/omnipay/pull/110
+class ExpressCheckoutDetailsRequest extends \Omnipay\PayPal\Message\AbstractRequest
+{
+	public function getData()
+	{
+		$data = $this->getBaseData('GetExpressCheckoutDetails');
+		$data['TOKEN'] = $this->httpRequest->query->get('token');
+
+		return $data;
+	}
+}
+
+class TMPGateway extends \Omnipay\PayPal\ExpressGateway {
+
+	public function fetchTransaction(array $parameters = array())
+	{
+		return $this->createRequest('ExpressCheckoutDetailsRequest', $parameters);
 	}
 
 }
