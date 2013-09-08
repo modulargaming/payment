@@ -96,8 +96,20 @@ class Controller_Payment_Recurring extends Controller_Payment {
 		}
 		else
 		{
+			Kohana::$log->add(Log::ERROR, $this->getTextReport($response->getData()));
 			throw HTTP_Exception::factory('403', 'Something went wrong, no cash should have been drawn, if the error proceeds contact support!');
 		}
+	}
+
+	public function getTextReport($post)
+	{
+		$r = "\n";
+		foreach ($post as $key => $value)
+		{
+			$r .= str_pad($key, 25).$value."\n";
+		}
+
+		return $r;
 	}
 
 	protected function _payment_vars()
