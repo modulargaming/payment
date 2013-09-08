@@ -182,15 +182,19 @@ class CreateRecurringPaymentsRequest extends \Omnipay\PayPal\Message\AbstractReq
 		$this->validate('amount');
 
 		// Recurring Payments Profile Details Fields
-		$data['PROFILESTARTDATE'] = date('Y-m-d\TH:i:s\Z', strtotime('+ 1 month')); // We need to start the profile a month later.
+		//$data['PROFILESTARTDATE'] = date('Y-m-d\TH:i:s\Z', strtotime('+ 1 month')); // We need to start the profile a month later.
 		//$data['PROFILEREFERENCE'] // Subscription ID?
+
+		$data['PROFILESTARTDATE'] = date('Y-m-d\TH:i:s\Z', strtotime('+ 1 day'));
 
 		// Schedule Details Fields
 		$data['DESC'] = 'Test Recurring Payment($1 monthly)'; // Need to match the L_BILLINGAGREEMENTDESCRIPTION0.
 
 		// Billing Period Details Fields
-		$data['BILLINGPERIOD'] = 'Month';
-		$data['BILLINGFREQUENCY'] = '12';
+		//$data['BILLINGPERIOD'] = 'Month';
+		$data['BILLINGFREQUENCY'] = '1';
+		$data['BILLINGPERIOD'] = 'Day';
+
 		$data['AMT'] = $this->getAmount();
 		$data['CURRENCYCODE'] = $this->getCurrency();
 
