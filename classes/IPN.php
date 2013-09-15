@@ -94,4 +94,21 @@ class IPN {
 		return IPN::PAYPAL_HOST;
 	}
 
+	/**
+	 * Format the data array to string.
+	 *
+	 * @param $data
+	 * @return string
+	 */
+	public static function array_to_string(array $data)
+	{
+		$r = "\n";
+		foreach ($data as $key => $value)
+		{
+			$r .= str_pad($key, 25).$value."\n";
+		}
+
+		return $r;
+	}
+
 }

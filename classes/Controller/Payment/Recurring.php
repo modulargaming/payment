@@ -18,7 +18,7 @@ class Controller_Payment_Recurring extends Controller_Payment {
 	protected $_config;
 
 	/**
-	 * @var Omnipay\PayPal\ExpressGateway
+	 * @var Payment_PayPalGateway
 	 */
 	protected $_gateway;
 
@@ -39,8 +39,7 @@ class Controller_Payment_Recurring extends Controller_Payment {
 
 		$this->_config = Kohana::$config->load('payment.gateways.paypal');
 
-		//$this->_gateway = Omnipay\Common\GatewayFactory::create('PayPal_Express');
-		$this->_gateway = Omnipay\Common\GatewayFactory::create('\TMPGateway');
+		$this->_gateway = Omnipay\Common\GatewayFactory::create('\Payment_PayPalGateway');
 		$this->_gateway->setUsername($this->_config['username']);
 		$this->_gateway->setPassword($this->_config['password']);
 		$this->_gateway->setSignature($this->_config['signature']);
@@ -51,7 +50,7 @@ class Controller_Payment_Recurring extends Controller_Payment {
 	public function action_index()
 	{
 		/** @var Omnipay\PayPal\Message\ExpressAuthorizeResponse $response */
-		$response = $this->_gateway->purchase($this->_payment_vars())
+		$response = $this->_gateway->authorizeRecurring($this->_payment_vars())
 			->send();
 
 		// Redirect the user to PayPal.
@@ -78,7 +77,9 @@ class Controller_Payment_Recurring extends Controller_Payment {
 		/** @var Omnipay\PayPal\Message\ExpressAuthorizeResponse $response */
 		$response = $this->_gateway->createRecurringPaymentsProfile($parameters)
 			->send();
-		Kohana::$log->add(Log::ERROR, $this->getTextReport($response->getData()));
+
+		Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
+
 		if ($response->isSuccessful())
 		{
 			$response_data = $response->getData();
@@ -101,7 +102,7 @@ class Controller_Payment_Recurring extends Controller_Payment {
 		}
 		else
 		{
-			Kohana::$log->add(Log::ERROR, Controller_Payment_IPN::array_to_string($response->getData()));
+			Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
 			throw HTTP_Exception::factory('403', 'Something went wrong, no cash should have been drawn, if the error proceeds contact support!');
 		}
 	}
@@ -124,100 +125,6 @@ class Controller_Payment_Recurring extends Controller_Payment {
 				'id' => $this->_package->id
 			), TRUE)
 		);
-	}
-
-}
-
-// UGLY, we should be on the lookout for custom parameters issue.
-// https://github.com/adrianmacneil/omnipay/pull/82
-class TMPGateway extends \Omnipay\PayPal\ExpressGateway {
-
-	public function authorize(array $parameters = array())
-	{
-		return $this->createRequest('ExpressAuthorizeRequest', $parameters);
-	}
-
-	public function createRecurringPaymentsProfile(array $parameters = array())
-	{
-		return $this->createRequest('CreateRecurringPaymentsRequest', $parameters);
-	}
-
-	public function fetchTransaction(array $parameters = array())
-	{
-		return $this->createRequest('ExpressCheckoutDetailsRequest', $parameters);
-	}
-
-}
-
-// UGLY, There is a pull request for Omnipay to add this feature. We should be on the lookout for when it gets merged.
-// https://github.com/adrianmacneil/omnipay/pull/110
-class ExpressCheckoutDetailsRequest extends \Omnipay\PayPal\Message\AbstractRequest
-{
-	public function getData()
-	{
-		$data = $this->getBaseData('GetExpressCheckoutDetails');
-		$data['TOKEN'] = $this->httpRequest->query->get('token');
-
-		return $data;
-	}
-}
-
-class ExpressAuthorizeRequest extends \Omnipay\PayPal\Message\ExpressAuthorizeRequest {
-
-	public function getData()
-	{
-		$data = parent::getData();
-
-		$data['L_BILLINGTYPE0'] = 'RecurringPayments';
-		$data['L_BILLINGAGREEMENTDESCRIPTION0'] = $this->getParameter('description');
-
-		// Set cost to 0.
-		$data['PAYMENTREQUEST_0_AMT'] = 0;
-
-		return $data;
-	}
-
-}
-
-class CreateRecurringPaymentsRequest extends \Omnipay\PayPal\Message\AbstractRequest {
-
-	// https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/CreateRecurringPaymentsProfile_API_Operation_NVP/
-	public function getData()
-	{
-		$data = $this->getBaseData('CreateRecurringPaymentsProfile');
-
-		$this->validate('amount');
-
-		// Recurring Payments Profile Details Fields
-		$data['PROFILESTARTDATE'] = date('Y-m-d\TH:i:s\Z', strtotime('+ 1 month')); // We need to start the profile a month later.
-		//$data['PROFILEREFERENCE'] // Subscription ID?
-
-		// Schedule Details Fields
-		$data['DESC'] = $this->getParameter('description');
-
-		// Billing Period Details Fields
-		$data['BILLINGPERIOD'] = 'Month';
-		$data['BILLINGFREQUENCY'] = '1';
-
-		$data['AMT'] = $this->getAmount();
-		$data['CURRENCYCODE'] = $this->getCurrency();
-
-		// Activation Details Fields
-		$data['INITAMT'] = $this->getAmount(); // Set a initial payment, so we get paid directly!
-
-		// Payer Information Fields
-		$data['EMAIL'] = $this->getParameter('email');
-
-		// Payment Details Item Fields
-		$data['L_PAYMENTREQUEST_0_ITEMCATEGORY0'] = 'Digital';
-		$data['L_PAYMENTREQUEST_0_NAME0'] = 'TEST';
-		$data['L_PAYMENTREQUEST_0_AMT0'] = $this->getAmount();
-		$data['L_PAYMENTREQUEST_0_QTY0'] = 1;
-
-		$data['TOKEN'] = $this->httpRequest->query->get('token');
-		//$data['PAYERID'] = $this->httpRequest->query->get('PayerID');
-
-		return $data;
 	}
 
 }

@@ -41,7 +41,7 @@ class Controller_Payment_PayPal extends Controller_Payment {
 
 		// TODO: Change Gateway to PayPal_Express once it supports fetchTransaction.
 		//$this->_gateway = Omnipay\Common\GatewayFactory::create('PayPal_Express');
-		$this->_gateway = Omnipay\Common\GatewayFactory::create('\TMPGateway');
+		$this->_gateway = Omnipay\Common\GatewayFactory::create('\Payment_PayPalGateway');
 		$this->_gateway->setUsername($this->_config['username']);
 		$this->_gateway->setPassword($this->_config['password']);
 		$this->_gateway->setSignature($this->_config['signature']);
@@ -149,28 +149,6 @@ class Controller_Payment_PayPal extends Controller_Payment {
 				'id' => $this->_package->id
 			), TRUE)
 		);
-	}
-
-}
-
-// UGLY, There is a pull request for Omnipay to add this feature. We should be on the lookout for when it gets merged.
-// https://github.com/adrianmacneil/omnipay/pull/110
-class ExpressCheckoutDetailsRequest extends \Omnipay\PayPal\Message\AbstractRequest
-{
-	public function getData()
-	{
-		$data = $this->getBaseData('GetExpressCheckoutDetails');
-		$data['TOKEN'] = $this->httpRequest->query->get('token');
-
-		return $data;
-	}
-}
-
-class TMPGateway extends \Omnipay\PayPal\ExpressGateway {
-
-	public function fetchTransaction(array $parameters = array())
-	{
-		return $this->createRequest('ExpressCheckoutDetailsRequest', $parameters);
 	}
 
 }

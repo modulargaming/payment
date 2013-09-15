@@ -23,7 +23,7 @@ class Controller_Payment_IPN extends Controller {
 	public function action_index()
 	{
 		// Log the output
-		Kohana::$log->add(Log::DEBUG, self::array_to_string($this->request->post()));
+		Kohana::$log->add(Log::DEBUG, IPN::array_to_string($this->request->post()));
 
 		$this->_IPN = new IPN();
 		$this->_IPN->process($this->request->post());
@@ -61,23 +61,6 @@ class Controller_Payment_IPN extends Controller {
 
 		$this->response->status(200);
 		$this->response->body('OK');
-	}
-
-	/**
-	 * Format the data array to string.
-	 *
-	 * @param $data
-	 * @return string
-	 */
-	public static function array_to_string(array $data)
-	{
-		$r = "\n";
-		foreach ($data as $key => $value)
-		{
-			$r .= str_pad($key, 25).$value."\n";
-		}
-
-		return $r;
 	}
 
 	/**
