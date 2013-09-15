@@ -12,9 +12,34 @@ class View_Payment_Package extends Abstract_View_Payment {
 		return $this->package->name;
 	}
 
-	public function paypal_url()
+	public function package()
 	{
-		return Route::url('payment.paypal', array('id' => $this->package->id));
+		return array(
+			'name' => $this->package->name,
+			'price' => $this->package->price,
+		);
+	}
+
+	public function checkout()
+	{
+		if ($this->package->type === Model_Payment_Package::TYPE_ONCE)
+		{
+			return array(
+				array(
+					'title' => 'Checkout with PayPal',
+					'href'  => Route::url('payment.paypal', array('id' => $this->package->id))
+				)
+			);
+		}
+		elseif ($this->package->type === Model_Payment_Package::TYPE_RECURRING)
+		{
+			return array(
+				array(
+					'title' => 'Checkout with PayPal',
+					'href'  => Route::url('payment.recurring', array('id' => $this->package->id))
+				)
+			);
+		}
 	}
 
 	public function get_breadcrumb()

@@ -32,6 +32,11 @@ class Controller_Payment_Recurring extends Controller_Payment {
 			throw HTTP_Exception::factory('404', 'file not found');
 		}
 
+		if ($this->_package->type !== Model_Payment_Package::TYPE_RECURRING)
+		{
+			throw HTTP_Exception::factory('404', 'file not found');
+		}
+
 		$this->_config = Kohana::$config->load('payment.gateways.paypal');
 
 		//$this->_gateway = Omnipay\Common\GatewayFactory::create('PayPal_Express');

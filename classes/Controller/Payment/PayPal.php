@@ -32,6 +32,11 @@ class Controller_Payment_PayPal extends Controller_Payment {
 			throw HTTP_Exception::factory('404', 'file not found');
 		}
 
+		if ($this->_package->type !== Model_Payment_Package::TYPE_ONCE)
+		{
+			throw HTTP_Exception::factory('404', 'file not found');
+		}
+
 		$this->_config = Kohana::$config->load('payment.gateways.paypal');
 
 		// TODO: Change Gateway to PayPal_Express once it supports fetchTransaction.
