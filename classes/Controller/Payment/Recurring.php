@@ -111,6 +111,7 @@ class Controller_Payment_Recurring extends Controller_Payment {
 		return array(
 			'amount'      => $this->_package->price,
 			'currency'    => $this->_config['currency'],
+			'description' => $this->_package->name,
 
 			'testMode'    => $this->_config['testMode'],
 			'landingPage' => array('Login', 'Billing'),
@@ -168,7 +169,7 @@ class ExpressAuthorizeRequest extends \Omnipay\PayPal\Message\ExpressAuthorizeRe
 		$data = parent::getData();
 
 		$data['L_BILLINGTYPE0'] = 'RecurringPayments';
-		$data['L_BILLINGAGREEMENTDESCRIPTION0'] = 'Test Recurring Payment($1 monthly)';
+		$data['L_BILLINGAGREEMENTDESCRIPTION0'] = $this->getParameter('description');
 
 		// Set cost to 0.
 		$data['PAYMENTREQUEST_0_AMT'] = 0;
@@ -188,18 +189,15 @@ class CreateRecurringPaymentsRequest extends \Omnipay\PayPal\Message\AbstractReq
 		$this->validate('amount');
 
 		// Recurring Payments Profile Details Fields
-		//$data['PROFILESTARTDATE'] = date('Y-m-d\TH:i:s\Z', strtotime('+ 1 month')); // We need to start the profile a month later.
+		$data['PROFILESTARTDATE'] = date('Y-m-d\TH:i:s\Z', strtotime('+ 1 month')); // We need to start the profile a month later.
 		//$data['PROFILEREFERENCE'] // Subscription ID?
 
-		$data['PROFILESTARTDATE'] = date('Y-m-d\TH:i:s\Z', strtotime('+ 1 day'));
-
 		// Schedule Details Fields
-		$data['DESC'] = 'Test Recurring Payment($1 monthly)'; // Need to match the L_BILLINGAGREEMENTDESCRIPTION0.
+		$data['DESC'] = $this->getParameter('description');
 
 		// Billing Period Details Fields
-		//$data['BILLINGPERIOD'] = 'Month';
+		$data['BILLINGPERIOD'] = 'Month';
 		$data['BILLINGFREQUENCY'] = '1';
-		$data['BILLINGPERIOD'] = 'Day';
 
 		$data['AMT'] = $this->getAmount();
 		$data['CURRENCYCODE'] = $this->getCurrency();
