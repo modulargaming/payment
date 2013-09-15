@@ -68,6 +68,8 @@ class Controller_Payment_IPN extends Controller {
 	 */
 	protected function _profile_created()
 	{
+		$this->_create_transaction();
+
 		// Set subscription to 1 month.
 		$this->_subscription->values(array(
 			'status'  => Model_Payment_Subscription::ACTIVE,
@@ -91,10 +93,30 @@ class Controller_Payment_IPN extends Controller {
 	 */
 	protected function _payment()
 	{
+		$this->_create_transaction();
+
 		// Set subscription to 1 month.
 		$this->_subscription->values(array(
 			'expires' => strtotime('+1 month'),
 		))->update();
+	}
+
+	/**
+	 * Create a transaction for the payment.
+	 */
+	protected function _create_transaction()
+	{
+		ORM::factory('Payment_Transaction')
+			->values(array(
+				'user_id'    => $this->_subscription->user_id,
+				'package_id' => $this->_subscription->package_id,
+				'token'      => $this->_IPN->get_data('recurring_payment_id'),
+				'status'     => Model_Payment_Transaction::STATUS_COMPLETED,
+				'email'      => $this->_IPN->get_data('payer_email'),
+				'first_name' => $this->_IPN->get_data('first_name'),
+				'last_name'  => $this->_IPN->get_data('last_name'),
+				'country'    => $this->_IPN->get_data('residence_country'),
+			))->create();
 	}
 
 }

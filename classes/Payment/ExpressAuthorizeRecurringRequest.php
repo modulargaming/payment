@@ -19,7 +19,7 @@ class Payment_ExpressAuthorizeRecurringRequest extends \Omnipay\PayPal\Message\E
 		$data = parent::getData();
 
 		$data['L_BILLINGTYPE0'] = 'RecurringPayments';
-		$data['L_BILLINGAGREEMENTDESCRIPTION0'] = $this->getParameter('description');
+		$data['L_BILLINGAGREEMENTDESCRIPTION0'] = $this->getDescription();
 
 		// Set cost to 0.
 		$data['PAYMENTREQUEST_0_AMT'] = 0;

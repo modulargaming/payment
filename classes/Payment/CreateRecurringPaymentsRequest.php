@@ -21,7 +21,7 @@ class Payment_CreateRecurringPaymentsRequest extends \Omnipay\PayPal\Message\Abs
 		//$data['PROFILEREFERENCE'] // Subscription ID?
 
 		// Schedule Details Fields
-		$data['DESC'] = $this->getParameter('description');
+		$data['DESC'] = $this->getDescription();
 
 		// Billing Period Details Fields
 		$data['BILLINGPERIOD'] = 'Month';
@@ -38,7 +38,7 @@ class Payment_CreateRecurringPaymentsRequest extends \Omnipay\PayPal\Message\Abs
 
 		// Payment Details Item Fields
 		$data['L_PAYMENTREQUEST_0_ITEMCATEGORY0'] = 'Digital';
-		$data['L_PAYMENTREQUEST_0_NAME0'] = 'TEST';
+		$data['L_PAYMENTREQUEST_0_NAME0'] = $this->getDescription();
 		$data['L_PAYMENTREQUEST_0_AMT0'] = $this->getAmount();
 		$data['L_PAYMENTREQUEST_0_QTY0'] = 1;
 

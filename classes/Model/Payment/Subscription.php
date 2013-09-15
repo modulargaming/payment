@@ -15,6 +15,17 @@ class Model_Payment_Subscription extends ORM {
 	const ACTIVE    = 'active';
 	const CANCELLED = 'cancelled';
 
+	protected $_table_columns = array(
+		'id'                   => NULL,
+		'user_id'              => NULL,
+		'package_id'           => NULL,
+		'created'              => NULL,
+		'updated'              => NULL,
+		'status'               => NULL,
+		'recurring_payment_id' => NULL,
+		'expires'              => NULL,
+	);
+
 	protected $_created_column = array(
 		'column' => 'created',
 		'format' => TRUE

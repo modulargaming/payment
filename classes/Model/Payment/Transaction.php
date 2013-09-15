@@ -10,6 +10,23 @@
  */
 class Model_Payment_Transaction extends ORM {
 
+	const STATUS_PENDING   = 'pending';
+	const STATUS_COMPLETED = 'completed';
+
+	protected $_table_columns = array(
+		'id'         => NULL,
+		'user_id'    => NULL,
+		'package_id' => NULL,
+		'created'    => NULL,
+		'updated'    => NULL,
+		'token'      => NULL,
+		'status'     => NULL,
+		'email'      => NULL,
+		'fist_name'  => NULL,
+		'last_name'  => NULL,
+		'country'    => NULL,
+	);
+
 	protected $_created_column = array(
 		'column' => 'created',
 		'format' => TRUE
