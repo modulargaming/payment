@@ -1,17 +1,31 @@
 <?php defined('SYSPATH') OR die('No direct script access.');
-
-
+/**
+ * IPN class for listening to PayPal Instant Payment Notifications.
+ *
+ * @package    MG/Payment
+ * @author     Modular Gaming
+ * @copyright  (c) 2012-2013 Modular Gaming
+ * @license    BSD http://www.modulargaming.com/license
+ */
 class IPN {
 
 	const PAYPAL_HOST = 'https://www.paypal.com:/cgi-bin/webscr';
 	const SANDBOX_HOST = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
 
-	public $use_ssl = TRUE;
+	// Transaction Types
+	const RECURRING_PAYMENT = 'recurring_payment';
+	const RECURRING_PAYMENT_EXPIRED = 'recurring_payment_expired';
+	const RECURRING_PAYMENT_PROFILE_CREATED = 'recurring_payment_profile_created';
+	const RECURRING_PAYMENT_SKIPPED = 'recurring_payment_skipped';
+	const RECURRING_PAYMENT_PROFILE_CANCEL = 'recurring_payment_profile_cancel';
 
 	protected $_data;
 
 	protected $_is_verified = FALSE;
 
+	/**
+	 * @param $data
+	 */
 	public function process($data)
 	{
 		$this->_data = array('cmd' => '_notify-validate') + $data;
@@ -32,7 +46,6 @@ class IPN {
 		{
 			$this->_is_verified = TRUE;
 		}
-
 	}
 
 	/**
@@ -45,6 +58,12 @@ class IPN {
 		return $this->_is_verified;
 	}
 
+	/**
+	 * @param      $key
+	 * @param null $default
+	 *
+	 * @return null
+	 */
 	public function get_data($key, $default = NULL)
 	{
 		return isset($this->_data[$key]) ? $this->_data[$key] : $default;

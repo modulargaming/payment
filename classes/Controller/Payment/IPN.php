@@ -10,12 +10,6 @@
  */
 class Controller_Payment_IPN extends Controller {
 
-	const RECURRING_PAYMENT = 'recurring_payment';
-	const RECURRING_PAYMENT_EXPIRED = 'recurring_payment_expired';
-	const RECURRING_PAYMENT_PROFILE_CREATED = 'recurring_payment_profile_created';
-	const RECURRING_PAYMENT_SKIPPED = 'recurring_payment_skipped';
-	const RECURRING_PAYMENT_PROFILE_CANCEL = 'recurring_payment_profile_cancel';
-
 	/**
 	 * @var IPN
 	 */
@@ -29,7 +23,7 @@ class Controller_Payment_IPN extends Controller {
 	public function action_index()
 	{
 		// Log the output
-		Kohana::$log->add(Log::DEBUG, $this->getTextReport());
+		Kohana::$log->add(Log::DEBUG, self::array_to_string($this->request->post()));
 
 		$this->_IPN = new IPN();
 		$this->_IPN->process($this->request->post());
@@ -51,15 +45,15 @@ class Controller_Payment_IPN extends Controller {
 
 		switch($this->_IPN->get_transaction_type())
 		{
-			case self::RECURRING_PAYMENT_PROFILE_CREATED:
+			case IPN::RECURRING_PAYMENT_PROFILE_CREATED:
 				Kohana::$log->add(Log::DEBUG, 'PROFILE CREATED');
 				$this->_profile_created();
 				break;
-			case self::RECURRING_PAYMENT:
+			case IPN::RECURRING_PAYMENT:
 				Kohana::$log->add(Log::DEBUG, 'PAYMENT RECIEVED');
 				$this->_payment();
 				break;
-			case self::RECURRING_PAYMENT_PROFILE_CANCEL:
+			case IPN::RECURRING_PAYMENT_PROFILE_CANCEL:
 				Kohana::$log->add(Log::DEBUG, 'PROFILE CANCEL');
 				$this->_profile_cancel();
 				break;
@@ -69,10 +63,17 @@ class Controller_Payment_IPN extends Controller {
 		$this->response->body('OK');
 	}
 
-	public function getTextReport()
+	/**
+	 * Format the data array to string.
+	 *
+	 * @param $data
+	 *
+	 * @return string
+	 */
+	public static function array_to_string(array $data)
 	{
 		$r = "\n";
-		foreach ($this->request->post() as $key => $value)
+		foreach ($data as $key => $value)
 		{
 			$r .= str_pad($key, 25).$value."\n";
 		}

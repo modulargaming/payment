@@ -34,6 +34,7 @@ class Controller_Payment_PayPal extends Controller_Payment {
 
 		$this->_config = Kohana::$config->load('payment.gateways.paypal');
 
+		// TODO: Change Gateway to PayPal_Express once it supports fetchTransaction.
 		//$this->_gateway = Omnipay\Common\GatewayFactory::create('PayPal_Express');
 		$this->_gateway = Omnipay\Common\GatewayFactory::create('\TMPGateway');
 		$this->_gateway->setUsername($this->_config['username']);
@@ -49,7 +50,7 @@ class Controller_Payment_PayPal extends Controller_Payment {
 		$response = $this->_gateway->purchase($this->_payment_vars())
 			->send();
 
-		// Redirect the user to PayPal.
+		// Attempt to redirect the user to paypal.
 		if ($response->isRedirect())
 		{
 			$data = $response->getData();
