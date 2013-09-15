@@ -25,6 +25,8 @@ class Migration_Payment_20130908114106 extends Minion_Migration_Base {
 			  PRIMARY KEY (`id`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
 		");
+
+		$db->query(NULL, "ALTER TABLE payment_packages ADD `type` ENUM( 'once', 'recurring' ) NOT NULL AFTER `name` ;");
 	}
 
 	/**
@@ -35,6 +37,7 @@ class Migration_Payment_20130908114106 extends Minion_Migration_Base {
 	public function down(Kohana_Database $db)
 	{
 		$db->query(NULL, 'DROP TABLE payment_subscriptions');
+		$db->query(NULL, 'ALTER TABLE payment_packages DROP `type`');
 	}
 
 }

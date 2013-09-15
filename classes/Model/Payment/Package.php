@@ -10,9 +10,13 @@
  */
 class Model_Payment_Package extends ORM {
 
+	const TYPE_ONCE      = 'once';      // One-time payment.
+	const TYPE_RECURRING = 'recurring'; // Recurring payment.
+
 	protected $_table_columns = array(
 		'id'    => NULL,
 		'name'  => NULL,
+		'type'  => NULL,
 		'price' => NULL
 	);
 
