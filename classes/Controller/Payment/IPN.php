@@ -50,7 +50,7 @@ class Controller_Payment_IPN extends Controller {
 				$this->_profile_created();
 				break;
 			case IPN::RECURRING_PAYMENT:
-				Kohana::$log->add(Log::DEBUG, 'PAYMENT RECIEVED');
+				Kohana::$log->add(Log::DEBUG, 'PAYMENT RECEIVED');
 				$this->_payment();
 				break;
 			case IPN::RECURRING_PAYMENT_PROFILE_CANCEL:
