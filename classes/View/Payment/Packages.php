@@ -1,11 +1,13 @@
 <?php
 
-class View_Payment_Packages extends Abstract_View {
+class View_Payment_Packages extends Abstract_View_Payment {
 
 	/**
 	 * @var Model_Payment_Package[]
 	 */
 	public $packages;
+
+	public $title = 'Packages';
 
 	public function packages()
 	{
