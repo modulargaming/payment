@@ -13,11 +13,11 @@ class IPN {
 	const SANDBOX_HOST = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
 
 	// Transaction Types
-	const RECURRING_PAYMENT = 'recurring_payment';
-	const RECURRING_PAYMENT_EXPIRED = 'recurring_payment_expired';
+	const RECURRING_PAYMENT                 = 'recurring_payment';
+	const RECURRING_PAYMENT_EXPIRED         = 'recurring_payment_expired';
 	const RECURRING_PAYMENT_PROFILE_CREATED = 'recurring_payment_profile_created';
-	const RECURRING_PAYMENT_SKIPPED = 'recurring_payment_skipped';
-	const RECURRING_PAYMENT_PROFILE_CANCEL = 'recurring_payment_profile_cancel';
+	const RECURRING_PAYMENT_SKIPPED         = 'recurring_payment_skipped';
+	const RECURRING_PAYMENT_PROFILE_CANCEL  = 'recurring_payment_profile_cancel';
 
 	protected $_data;
 

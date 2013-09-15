@@ -67,7 +67,6 @@ class Controller_Payment_IPN extends Controller {
 	 * Format the data array to string.
 	 *
 	 * @param $data
-	 *
 	 * @return string
 	 */
 	public static function array_to_string(array $data)
