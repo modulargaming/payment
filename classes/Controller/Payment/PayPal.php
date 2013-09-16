@@ -108,12 +108,12 @@ class Controller_Payment_PayPal extends Controller_Payment {
 				'country'    => $data['COUNTRYCODE'],
 			))->save();
 
-			// TODO: Code a proper reward system!
-			$points = Kohana::$config->load('items.points');
-			$initial_points = $points['initial'];
-
-			// Hardcoded reward for now.
-			$this->user->set_property('points', $this->user->get_property('points', $initial_points) + 100);
+			// Give the player the rewards.
+			foreach ($this->_package->rewards as $key => $value)
+			{
+				$reward = Payment_Reward::factory($key, $value);
+				$reward->reward($this->user);
+			}
 			$this->user->save();
 
 			Hint::success(Kohana::message('payment', 'payment.success'));

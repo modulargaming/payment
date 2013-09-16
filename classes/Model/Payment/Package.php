@@ -14,10 +14,15 @@ class Model_Payment_Package extends ORM {
 	const TYPE_RECURRING = 'recurring'; // Recurring payment.
 
 	protected $_table_columns = array(
-		'id'    => NULL,
-		'name'  => NULL,
-		'type'  => NULL,
-		'price' => NULL
+		'id'      => NULL,
+		'name'    => NULL,
+		'type'    => NULL,
+		'price'   => NULL,
+		'rewards' => NULL,
+	);
+
+	protected $_serialize_columns = array(
+		'rewards'
 	);
 
 }
