@@ -22,7 +22,7 @@ class Model_Payment_Transaction extends ORM {
 		'token'      => NULL,
 		'status'     => NULL,
 		'email'      => NULL,
-		'fist_name'  => NULL,
+		'first_name' => NULL,
 		'last_name'  => NULL,
 		'country'    => NULL,
 	);
