@@ -20,9 +20,32 @@ It adds support for processing payments within Modular Gaming, using the [Omnipa
 Payment is installed using composer, simply add it as a dependency to your ```composer.json``` file:
 ```javascript
 {
-    "require": {
-        "modulargaming/payment": "~1.0.0"
-    }
+	"require": {
+		"modulargaming/payment": "~1.0.0"
+	}
 }
 ```
 
+## Rewards
+
+The reward system is driver based, this allows you to define multiple rewards for a single package.
+Currently only Points are supported, however it is quite easy to implement your own driver.
+
+```php
+class Payment_Reward_Type extends Payment_Reward {
+
+	private $_reward;
+
+	public function __construct($reward)
+	{
+		$this->_reward = $reward;
+	}
+
+	public function reward(Model_User $user)
+	{
+		// TODO: Write the reward code.
+	}
+
+}
+```
+For examples, check the current drivers, Payment/Reward.
