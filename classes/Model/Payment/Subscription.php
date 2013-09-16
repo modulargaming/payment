@@ -8,23 +8,22 @@
  * @copyright  (c) 2012-2013 Modular Gaming
  * @license    BSD http://www.modulargaming.com/license
  */
-class Model_Payment_Transaction extends ORM {
+class Model_Payment_Subscription extends ORM {
 
-	const STATUS_PENDING   = 'pending';
-	const STATUS_COMPLETED = 'completed';
+	// Subscription statuses
+	const PENDING   = 'pending';
+	const ACTIVE    = 'active';
+	const CANCELLED = 'cancelled';
 
 	protected $_table_columns = array(
-		'id'         => NULL,
-		'user_id'    => NULL,
-		'package_id' => NULL,
-		'created'    => NULL,
-		'updated'    => NULL,
-		'token'      => NULL,
-		'status'     => NULL,
-		'email'      => NULL,
-		'fist_name'  => NULL,
-		'last_name'  => NULL,
-		'country'    => NULL,
+		'id'                   => NULL,
+		'user_id'              => NULL,
+		'package_id'           => NULL,
+		'created'              => NULL,
+		'updated'              => NULL,
+		'status'               => NULL,
+		'recurring_payment_id' => NULL,
+		'expires'              => NULL,
 	);
 
 	protected $_created_column = array(

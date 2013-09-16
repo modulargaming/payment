@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') OR die('No direct script access.');
 /**
- * Controller for handling PayPal Express Checkout.
+ * Controller for handling PayPal Recurring payments.
  *
  * @package    MG/Payment
  * @category   Controller
@@ -8,7 +8,7 @@
  * @copyright  (c) 2012-2013 Modular Gaming
  * @license    BSD http://www.modulargaming.com/license
  */
-class Controller_Payment_PayPal extends Controller_Payment {
+class Controller_Payment_Recurring extends Controller_Payment {
 
 	/**
 	 * @var Model_Payment_Package
@@ -18,7 +18,7 @@ class Controller_Payment_PayPal extends Controller_Payment {
 	protected $_config;
 
 	/**
-	 * @var Omnipay\PayPal\ExpressGateway
+	 * @var Payment_PayPalGateway
 	 */
 	protected $_gateway;
 
@@ -32,15 +32,13 @@ class Controller_Payment_PayPal extends Controller_Payment {
 			throw HTTP_Exception::factory('404', 'file not found');
 		}
 
-		if ($this->_package->type !== Model_Payment_Package::TYPE_ONCE)
+		if ($this->_package->type !== Model_Payment_Package::TYPE_RECURRING)
 		{
 			throw HTTP_Exception::factory('404', 'file not found');
 		}
 
 		$this->_config = Kohana::$config->load('payment.gateways.paypal');
 
-		// TODO: Change Gateway to PayPal_Express once it supports fetchTransaction.
-		//$this->_gateway = Omnipay\Common\GatewayFactory::create('PayPal_Express');
 		$this->_gateway = Omnipay\Common\GatewayFactory::create('\Payment_PayPalGateway');
 		$this->_gateway->setUsername($this->_config['username']);
 		$this->_gateway->setPassword($this->_config['password']);
@@ -52,22 +50,12 @@ class Controller_Payment_PayPal extends Controller_Payment {
 	public function action_index()
 	{
 		/** @var Omnipay\PayPal\Message\ExpressAuthorizeResponse $response */
-		$response = $this->_gateway->purchase($this->_payment_vars())
+		$response = $this->_gateway->authorizeRecurring($this->_payment_vars())
 			->send();
 
-		// Attempt to redirect the user to paypal.
+		// Redirect the user to PayPal.
 		if ($response->isRedirect())
 		{
-			$data = $response->getData();
-
-			ORM::factory('Payment_Transaction')
-				->values(array(
-					'user_id'    => $this->user->id,
-					'package_id' => $this->_package->id,
-					'token'      => $data['TOKEN'],
-					'status'     => 'pending',
-				))->create();
-
 			$response->redirect();
 		}
 		else
@@ -77,44 +65,36 @@ class Controller_Payment_PayPal extends Controller_Payment {
 		}
 	}
 
-	/**
-	 * Return the user from paypal, and process the payment.
-	 *
-	 * @throws HTTP_Exception
-	 */
 	public function action_complete()
 	{
+		// Get the transaction details.
+		$fetch = $this->_gateway->fetchTransaction($this->_payment_vars())->send();
+		$data = $fetch->getData();
+
+		// Add the buyer email to parameters.
+		$parameters = $this->_payment_vars() + array('email' => $data['EMAIL']);
 
 		/** @var Omnipay\PayPal\Message\ExpressAuthorizeResponse $response */
-		$response = $this->_gateway->completePurchase($this->_payment_vars())
+		$response = $this->_gateway->createRecurringPaymentsProfile($parameters)
 			->send();
+
+		Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
 
 		if ($response->isSuccessful())
 		{
+			$response_data = $response->getData();
+
 			// Get the transaction details.
-			$fetch = $this->_gateway->fetchTransaction($this->_payment_vars())->send();
-			$data = $fetch->getData();
+			// $fetch = $this->_gateway->fetchTransaction($this->_payment_vars())->send();
+			// $data = $fetch->getData();
 
-			$transaction = ORM::factory('Payment_Transaction')
-				->where('TOKEN', '=', $data['TOKEN'])
-				->find();
-
-			// Update the transaction with the buyers information.
-			$transaction->values(array(
-				'status'     => 'completed',
-				'email'      => $data['EMAIL'],
-				'first_name' => $data['FIRSTNAME'],
-				'last_name'  => $data['LASTNAME'],
-				'country'    => $data['COUNTRYCODE'],
-			))->save();
-
-			// TODO: Code a proper reward system!
-			$points = Kohana::$config->load('items.points');
-			$initial_points = $points['initial'];
-
-			// Hardcoded reward for now.
-			$this->user->set_property('points', $this->user->get_property('points', $initial_points) + 100);
-			$this->user->save();
+			ORM::factory('Payment_Subscription')
+				->values(array(
+					'user_id'              => $this->user->id,
+					'package_id'           => $this->_package->id,
+					'status'               => Model_Payment_Subscription::PENDING,
+					'recurring_payment_id' => $response_data['PROFILEID']
+				))->create();
 
 			Hint::success(Kohana::message('payment', 'payment.success'));
 			$this->redirect(Route::get('payment')->uri());
@@ -122,26 +102,22 @@ class Controller_Payment_PayPal extends Controller_Payment {
 		}
 		else
 		{
+			Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
 			throw HTTP_Exception::factory('403', 'Something went wrong, no cash should have been drawn, if the error proceeds contact support!');
 		}
-
 	}
 
-	/**
-	 * Format the payment details for the package.
-	 *
-	 * @return array
-	 */
 	protected function _payment_vars()
 	{
 		return array(
 			'amount'      => $this->_package->price,
 			'currency'    => $this->_config['currency'],
+			'description' => $this->_package->name,
 
 			'testMode'    => $this->_config['testMode'],
 			'landingPage' => array('Login', 'Billing'),
 
-			'return_url'  => Route::url('payment.paypal', array(
+			'return_url'  => Route::url('payment.recurring', array(
 				'action' => 'complete',
 				'id'     => $this->_package->id,
 			), TRUE),

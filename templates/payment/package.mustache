@@ -1,3 +1,7 @@
 <h2>Buy {{package.name}}</h2>
 
-<a href="{{paypal_url}}">Checkout with paypal</a>
+<p>Price: {{package.price}}</p>
+
+{{#checkout}}
+	<a href="{{href}}" class="btn">{{title}}</a>
+{{/checkout}}
