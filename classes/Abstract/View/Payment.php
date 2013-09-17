@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') OR die('No direct script access.');
 
 
-class Abstract_View_Payment extends ABstract_View {
+class Abstract_View_Payment extends Abstract_View {
 
 	public function get_breadcrumb()
 	{
