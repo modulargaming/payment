@@ -21,12 +21,14 @@ Payment is installed using composer, simply add it as a dependency to your ```co
 ```javascript
 {
 	"require": {
-		"modulargaming/payment": "~1.0.0"
+		"modulargaming/payment": "~0.1.0"
 	}
 }
 ```
 
 ## Rewards
+
+**Note: Rewards are only for regular payments NOT Recurring.**
 
 The reward system is driver based, this allows you to define multiple rewards for a single package.
 Currently only Points are supported, however it is quite easy to implement your own driver.
@@ -48,4 +50,13 @@ class Payment_Reward_Type extends Payment_Reward {
 
 }
 ```
+
+Example structure for rewards row in payment_packages table
+```javascript
+{
+   "Points": 200
+}
+```
+This will give the buyer 200 points.
+
 For examples, check the current drivers, Payment/Reward.
