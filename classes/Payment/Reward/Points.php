@@ -35,11 +35,7 @@ class Payment_Reward_Points extends Payment_Reward {
 	 */
 	public function reward(Model_User $user)
 	{
-		$config = Kohana::$config->load('items.points');
-		$initial_points = $config['initial'];
-
-		// Hardcoded reward for now.
-		$user->set_property('points', $user->get_property('points', $initial_points) + $this->_reward);
+		$user->set_property('points', $user->get_property('points') + $this->_reward);
 	}
 
 }
