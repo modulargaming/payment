@@ -39,9 +39,8 @@ class Controller_Payment_PayPal extends Controller_Payment {
 
 		$this->_config = Kohana::$config->load('payment.gateways.paypal');
 
-		// TODO: Change Gateway to PayPal_Express once it supports fetchTransaction.
-		//$this->_gateway = Omnipay\Common\GatewayFactory::create('PayPal_Express');
-		$this->_gateway = Omnipay\Common\GatewayFactory::create('\Payment_PayPalGateway');
+		// Create a PayPalExpressGateway.
+		$this->_gateway = new Payment_PayPal_ExpressGateway();
 		$this->_gateway->setUsername($this->_config['username']);
 		$this->_gateway->setPassword($this->_config['password']);
 		$this->_gateway->setSignature($this->_config['signature']);
@@ -51,9 +50,20 @@ class Controller_Payment_PayPal extends Controller_Payment {
 
 	public function action_index()
 	{
+		/** @var Omnipay\PayPal\Message\ExpressAuthorizeRequest $request */
+		$request = $this->_gateway->purchase($this->_payment_vars());
+
+		// Set the item.
+		$request->setItems(array(
+			array('name' => $this->_package->name, 'quantity' => 1, 'price' => $this->_package->price),
+		));
+
+		// Overwrite Item Category.
+		$data = $request->getData();
+		$data['L_PAYMENTREQUEST_0_ITEMCATEGORY0'] = $this->_config['itemCategory'];
+
 		/** @var Omnipay\PayPal\Message\ExpressAuthorizeResponse $response */
-		$response = $this->_gateway->purchase($this->_payment_vars())
-			->send();
+		$response = $request->sendData($data);
 
 		// Attempt to redirect the user to paypal.
 		if ($response->isRedirect())
@@ -72,6 +82,9 @@ class Controller_Payment_PayPal extends Controller_Payment {
 		}
 		else
 		{
+			// Log the error.
+			Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
+
 			// TODO: Improve the error message.
 			throw HTTP_Exception::factory('500', 'Error calling PayPal');
 		}
@@ -88,6 +101,8 @@ class Controller_Payment_PayPal extends Controller_Payment {
 		/** @var Omnipay\PayPal\Message\ExpressAuthorizeResponse $response */
 		$response = $this->_gateway->completePurchase($this->_payment_vars())
 			->send();
+
+
 
 		if ($response->isSuccessful())
 		{
@@ -122,6 +137,9 @@ class Controller_Payment_PayPal extends Controller_Payment {
 		}
 		else
 		{
+			// Log the error.
+			Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
+
 			throw HTTP_Exception::factory('403', 'Something went wrong, no cash should have been drawn, if the error proceeds contact support!');
 		}
 

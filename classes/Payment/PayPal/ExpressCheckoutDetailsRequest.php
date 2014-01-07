@@ -7,7 +7,7 @@
  * @copyright  (c) 2012-2013 Modular Gaming
  * @license    BSD http://www.modulargaming.com/license
  */
-class Payment_ExpressCheckoutDetailsRequest extends \Omnipay\PayPal\Message\AbstractRequest {
+class Payment_PayPal_ExpressCheckoutDetailsRequest extends \Omnipay\PayPal\Message\AbstractRequest {
 
 	public function getData()
 	{
