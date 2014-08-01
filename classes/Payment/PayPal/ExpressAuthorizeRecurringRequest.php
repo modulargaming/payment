@@ -7,7 +7,7 @@
  * @copyright  (c) 2012-2013 Modular Gaming
  * @license    BSD http://www.modulargaming.com/license
  */
-class Payment_ExpressAuthorizeRecurringRequest extends \Omnipay\PayPal\Message\ExpressAuthorizeRequest {
+class Payment_PayPal_ExpressAuthorizeRecurringRequest extends \Omnipay\PayPal\Message\ExpressAuthorizeRequest {
 
 	/**
 	 * Add support for recurring payments by setting the required variables if the is_recurring flag is true.

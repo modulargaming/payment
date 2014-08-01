@@ -7,7 +7,7 @@
  * @copyright  (c) 2012-2013 Modular Gaming
  * @license    BSD http://www.modulargaming.com/license
  */
-class Payment_CreateRecurringPaymentsRequest extends \Omnipay\PayPal\Message\AbstractRequest {
+class Payment_PayPal_CreateRecurringPaymentsRequest extends \Omnipay\PayPal\Message\AbstractRequest {
 
 	// https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/CreateRecurringPaymentsProfile_API_Operation_NVP/
 	public function getData()
@@ -37,7 +37,7 @@ class Payment_CreateRecurringPaymentsRequest extends \Omnipay\PayPal\Message\Abs
 		$data['EMAIL'] = $this->getParameter('email');
 
 		// Payment Details Item Fields
-		$data['L_PAYMENTREQUEST_0_ITEMCATEGORY0'] = 'Digital';
+		// $data['L_PAYMENTREQUEST_0_ITEMCATEGORY0'] = 'Digital'; // Set from the controller, due to switching between Digital and Physical
 		$data['L_PAYMENTREQUEST_0_NAME0'] = $this->getDescription();
 		$data['L_PAYMENTREQUEST_0_AMT0'] = $this->getAmount();
 		$data['L_PAYMENTREQUEST_0_QTY0'] = 1;

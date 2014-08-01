@@ -18,7 +18,7 @@ class Controller_Payment_Recurring extends Controller_Payment {
 	protected $_config;
 
 	/**
-	 * @var Payment_PayPalGateway
+	 * @var Payment_PayPal_ExpressGateway
 	 */
 	protected $_gateway;
 
@@ -39,7 +39,8 @@ class Controller_Payment_Recurring extends Controller_Payment {
 
 		$this->_config = Kohana::$config->load('payment.gateways.paypal');
 
-		$this->_gateway = Omnipay\Common\GatewayFactory::create('\Payment_PayPalGateway');
+		// Create a PayPalExpressGateway.
+		$this->_gateway = new Payment_PayPal_ExpressGateway();
 		$this->_gateway->setUsername($this->_config['username']);
 		$this->_gateway->setPassword($this->_config['password']);
 		$this->_gateway->setSignature($this->_config['signature']);
@@ -60,6 +61,9 @@ class Controller_Payment_Recurring extends Controller_Payment {
 		}
 		else
 		{
+			// Log the error.
+			Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
+
 			// TODO: Improve the error message.
 			throw HTTP_Exception::factory('500', 'Error calling PayPal');
 		}
@@ -74,11 +78,15 @@ class Controller_Payment_Recurring extends Controller_Payment {
 		// Add the buyer email to parameters.
 		$parameters = $this->_payment_vars() + array('email' => $data['EMAIL']);
 
-		/** @var Omnipay\PayPal\Message\ExpressAuthorizeResponse $response */
-		$response = $this->_gateway->createRecurringPaymentsProfile($parameters)
-			->send();
+		/** @var Payment_PayPal_CreateRecurringPaymentsRequest $request */
+		$request = $this->_gateway->createRecurringPaymentsProfile($parameters);
 
-		Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
+		// Overwrite Item Category.
+		$data = $request->getData();
+		$data['L_PAYMENTREQUEST_0_ITEMCATEGORY0'] = $this->_config['itemCategory'];
+
+		/** @var Omnipay\PayPal\Message\ExpressAuthorizeResponse $response */
+		$response = $request->sendData($data);
 
 		if ($response->isSuccessful())
 		{
@@ -102,7 +110,9 @@ class Controller_Payment_Recurring extends Controller_Payment {
 		}
 		else
 		{
+			// Log the error.
 			Kohana::$log->add(Log::ERROR, IPN::array_to_string($response->getData()));
+
 			throw HTTP_Exception::factory('403', 'Something went wrong, no cash should have been drawn, if the error proceeds contact support!');
 		}
 	}
